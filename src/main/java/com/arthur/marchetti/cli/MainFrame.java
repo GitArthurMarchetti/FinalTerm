@@ -1,6 +1,5 @@
 package com.arthur.marchetti.cli;
 
-// Imports do seu projeto 'marchetti'
 import com.arthur.marchetti.interfaces.TaxCalculator.CatalogRepository;
 import com.arthur.marchetti.interfaces.TaxCalculator.TaxCalculator;
 import com.arthur.marchetti.model.Cart;
@@ -11,7 +10,6 @@ import com.arthur.marchetti.model.Order;
 import com.arthur.marchetti.repo.FileReceiptRepository;
 import com.arthur.marchetti.repo.InMemoryCatalogRepository;
 
-// Imports do Swing e Java
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
@@ -27,14 +25,12 @@ import java.util.stream.Collectors;
 
 public class MainFrame extends JFrame {
 
-    // Usando seus repositórios e modelos
     private final CatalogRepository catalogRepo = new InMemoryCatalogRepository();
     private final Cart cart = new Cart();
     private final TaxCalculator taxCalc = new FlatRateTaxCalculator(new BigDecimal("0.06"));
     private final FileReceiptRepository receiptRepository = new FileReceiptRepository(defaultReceiptDir());
 
-    // Componentes da UI
-    private JList<MenuItem> itemsList; // Usando o tipo raw para compatibilidade
+    private JList<MenuItem> itemsList;
     private DefaultListModel<MenuItem> itemsModel;
     private JSpinner qtySpinner;
     private JButton addBtn;
@@ -44,19 +40,28 @@ public class MainFrame extends JFrame {
     private JLabel taxLbl;
     private JLabel totalLbl;
 
-    public MainFrame() {
-        super("Cafe Order Kiosk");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 640);
-        setLocationRelativeTo(null);
+    private static final Color COLOR_BACKGROUND = new Color(250, 245, 238);
+    private static final Color COLOR_PANEL = new Color(255, 255, 255);
+    private static final Color COLOR_PRIMARY = new Color(101, 67, 33);
+    private static final Color COLOR_SECONDARY = new Color(139, 90, 43);
+    private static final Color COLOR_ACCENT = new Color(210, 180, 140);
+    private static final Color COLOR_BUTTON = new Color(139, 90, 43);
+    private static final Color COLOR_BUTTON_HOVER = new Color(101, 67, 33);
+    private static final Color COLOR_CHECKOUT = new Color(34, 139, 34);
 
-        setLayout(new BorderLayout(10, 10));
+    public MainFrame() {
+        super("☕ Cafe Order Kiosk");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1200, 750);
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(COLOR_BACKGROUND);
+
+        setLayout(new BorderLayout(15, 15));
         add(buildLeftPanel(), BorderLayout.WEST);
         add(buildCenterPanel(), BorderLayout.CENTER);
         add(buildRightPanel(), BorderLayout.EAST);
         add(buildBottomBar(), BorderLayout.SOUTH);
 
-        // Carrega os itens iniciais (ex: Drinks)
         loadItems(Category.DRINK);
         updateTotals();
     }
@@ -64,64 +69,132 @@ public class MainFrame extends JFrame {
     private JComponent buildLeftPanel() {
         var panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
+        panel.setBackground(COLOR_PANEL);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_ACCENT, 2, true),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
 
-        // Botões de Categoria
-        var drinksBtn = new JButton("Drinks");
+        var titleLabel = new JLabel("Categories");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(COLOR_PRIMARY);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(20));
+
+        var drinksBtn = createCategoryButton("☕ Drinks");
         drinksBtn.addActionListener(e -> loadItems(Category.DRINK));
 
-        var bakeryBtn = new JButton("Bakery");
+        var bakeryBtn = createCategoryButton("🥐 Bakery");
         bakeryBtn.addActionListener(e -> loadItems(Category.BAKERY));
 
-        // Adicione outros botões se desejar, ex:
-        var sandwichBtn = new JButton("Sandwiches");
+        var sandwichBtn = createCategoryButton("🥪 Sandwiches");
         sandwichBtn.addActionListener(e -> loadItems(Category.SANDWITCH));
 
-        panel.add(new JLabel("Categories"));
-        panel.add(Box.createVerticalStrut(10));
         panel.add(drinksBtn);
-        panel.add(Box.createVerticalStrut(5));
+        panel.add(Box.createVerticalStrut(12));
         panel.add(bakeryBtn);
-        panel.add(Box.createVerticalStrut(5));
+        panel.add(Box.createVerticalStrut(12));
         panel.add(sandwichBtn);
 
-        panel.setPreferredSize(new Dimension(180, 10));
+        panel.setPreferredSize(new Dimension(220, 10));
         return panel;
     }
 
-    private JComponent buildCenterPanel() {
-        var root = new JPanel(new BorderLayout(6, 6));
-        root.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+    private JButton createCategoryButton(String text) {
+        var btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        btn.setBackground(COLOR_BUTTON);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setOpaque(true);
+        btn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        btn.setPreferredSize(new Dimension(180, 50));
+        
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(COLOR_BUTTON_HOVER);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(COLOR_BUTTON);
+            }
+        });
+        
+        return btn;
+    }
 
-        root.add(new JLabel("Items"), BorderLayout.NORTH);
+    private JComponent buildCenterPanel() {
+        var root = new JPanel(new BorderLayout(10, 10));
+        root.setBackground(COLOR_PANEL);
+        root.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_ACCENT, 2, true),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+
+        var titleLabel = new JLabel("Items");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(COLOR_PRIMARY);
+        root.add(titleLabel, BorderLayout.NORTH);
 
         itemsModel = new DefaultListModel<>();
         itemsList = new JList<>(itemsModel);
         itemsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         itemsList.addListSelectionListener(e -> onItemSelected(e));
+        itemsList.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        itemsList.setBackground(Color.WHITE);
+        itemsList.setSelectionBackground(COLOR_ACCENT);
+        itemsList.setSelectionForeground(COLOR_PRIMARY);
 
-        // Renderer customizado para mostrar nome e preço do MenuItem
         itemsList.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 var c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof MenuItem mi) {
-                    setText(mi.getName() + " — " + mi.getPrice().toPlainString());
+                    setText(mi.getName() + "  —  $" + mi.getPrice().toPlainString());
+                    setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                    setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
                 }
                 return c;
             }
         });
 
-        root.add(new JScrollPane(itemsList), BorderLayout.CENTER);
+        var scrollPane = new JScrollPane(itemsList);
+        scrollPane.setBorder(BorderFactory.createLineBorder(COLOR_ACCENT, 1, true));
+        root.add(scrollPane, BorderLayout.CENTER);
 
-        var foot = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        foot.add(new JLabel("Qty:"));
+        var foot = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        foot.setBackground(COLOR_PANEL);
+        var qtyLabel = new JLabel("Quantity:");
+        qtyLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        qtyLabel.setForeground(COLOR_PRIMARY);
+        foot.add(qtyLabel);
+        
         qtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
+        qtySpinner.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        qtySpinner.setPreferredSize(new Dimension(60, 35));
         foot.add(qtySpinner);
 
-        addBtn = new JButton("Add to Cart");
+        addBtn = new JButton("➕ Add to Cart");
+        addBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        addBtn.setFocusPainted(false);
+        addBtn.setBorderPainted(false);
+        addBtn.setOpaque(true);
+        addBtn.setPreferredSize(new Dimension(150, 40));
         addBtn.addActionListener(e -> addSelectedToCart());
         addBtn.setEnabled(false);
+        updateAddButtonStyle();
+        addBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (addBtn.isEnabled()) {
+                    addBtn.setBackground(COLOR_BUTTON_HOVER);
+                }
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                updateAddButtonStyle();
+            }
+        });
         foot.add(addBtn);
 
         root.add(foot, BorderLayout.SOUTH);
@@ -129,66 +202,152 @@ public class MainFrame extends JFrame {
     }
 
     private JComponent buildRightPanel() {
-        var panel = new JPanel(new BorderLayout(6, 6));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panel.add(new JLabel("Cart"), BorderLayout.NORTH);
+        var panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(COLOR_PANEL);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_ACCENT, 2, true),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
 
-        // Usa o CartTableModel com o seu 'Cart'
+        var titleLabel = new JLabel("🛒 Cart");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(COLOR_PRIMARY);
+        panel.add(titleLabel, BorderLayout.NORTH);
+
         cartTableModel = new CartTableModel(cart);
         cartTable = new JTable(cartTableModel);
         cartTable.setFillsViewportHeight(true);
-        // Atualiza os totais sempre que a tabela do carrinho mudar
+        cartTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cartTable.setRowHeight(35);
+        cartTable.setSelectionBackground(COLOR_ACCENT);
+        cartTable.setSelectionForeground(COLOR_PRIMARY);
+        cartTable.setGridColor(COLOR_ACCENT);
+        cartTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        cartTable.getTableHeader().setBackground(COLOR_PRIMARY);
+        cartTable.getTableHeader().setForeground(Color.WHITE);
+        cartTable.getTableHeader().setPreferredSize(new Dimension(0, 40));
         cartTableModel.addTableModelListener(e -> updateTotals());
 
-        panel.add(new JScrollPane(cartTable), BorderLayout.CENTER);
+        var scrollPane = new JScrollPane(cartTable);
+        scrollPane.setBorder(BorderFactory.createLineBorder(COLOR_ACCENT, 1, true));
+        panel.add(scrollPane, BorderLayout.CENTER);
 
-        var btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        var removeBtn = new JButton("Remove");
+        var btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        btns.setBackground(COLOR_PANEL);
+        
+        var removeBtn = new JButton("🗑️ Remove");
+        removeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        removeBtn.setBackground(new Color(220, 53, 69));
+        removeBtn.setForeground(Color.WHITE);
+        removeBtn.setFocusPainted(false);
+        removeBtn.setBorderPainted(false);
+        removeBtn.setOpaque(true);
+        removeBtn.setPreferredSize(new Dimension(100, 35));
         removeBtn.addActionListener(e -> removeSelectedCartLine());
-        var clearBtn = new JButton("Clear");
+        removeBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                removeBtn.setBackground(new Color(200, 35, 51));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                removeBtn.setBackground(new Color(220, 53, 69));
+            }
+        });
+        
+        var clearBtn = new JButton("🗑️ Clear");
+        clearBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        clearBtn.setBackground(new Color(108, 117, 125));
+        clearBtn.setForeground(Color.WHITE);
+        clearBtn.setFocusPainted(false);
+        clearBtn.setBorderPainted(false);
+        clearBtn.setOpaque(true);
+        clearBtn.setPreferredSize(new Dimension(100, 35));
         clearBtn.addActionListener(e -> {
             cart.clear();
             cartTableModel.refresh();
             updateTotals();
+        });
+        clearBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                clearBtn.setBackground(new Color(90, 98, 104));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                clearBtn.setBackground(new Color(108, 117, 125));
+            }
         });
 
         btns.add(removeBtn);
         btns.add(clearBtn);
         panel.add(btns, BorderLayout.SOUTH);
 
-        panel.setPreferredSize(new Dimension(420, 10));
+        panel.setPreferredSize(new Dimension(450, 10));
         return panel;
     }
 
     private JComponent buildBottomBar() {
-        var panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        subtotalLbl = new JLabel("Subtotal: 0.00");
-        taxLbl = new JLabel("Tax: 0.00");
-        totalLbl = new JLabel("Total: 0.00");
+        var panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
+        panel.setBackground(COLOR_PANEL);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, COLOR_ACCENT),
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
 
-        var checkoutBtn = new JButton("Checkout…");
-        // Conecta o botão ao handler de checkout
+        subtotalLbl = new JLabel("Subtotal: $0.00");
+        subtotalLbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtotalLbl.setForeground(COLOR_PRIMARY);
+        
+        taxLbl = new JLabel("Tax: $0.00");
+        taxLbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        taxLbl.setForeground(COLOR_PRIMARY);
+        
+        totalLbl = new JLabel("Total: $0.00");
+        totalLbl.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        totalLbl.setForeground(COLOR_PRIMARY);
+
+        var checkoutBtn = new JButton("💳 Checkout");
+        checkoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        checkoutBtn.setBackground(COLOR_CHECKOUT);
+        checkoutBtn.setForeground(Color.WHITE);
+        checkoutBtn.setFocusPainted(false);
+        checkoutBtn.setBorderPainted(false);
+        checkoutBtn.setOpaque(true);
+        checkoutBtn.setPreferredSize(new Dimension(180, 50));
         checkoutBtn.addActionListener(e -> handleCheckout());
+        checkoutBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                checkoutBtn.setBackground(new Color(28, 115, 28));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                checkoutBtn.setBackground(COLOR_CHECKOUT);
+            }
+        });
 
         panel.add(subtotalLbl);
-        panel.add(new JLabel("    "));
         panel.add(taxLbl);
-        panel.add(new JLabel("    "));
         panel.add(totalLbl);
-        panel.add(new JLabel("    "));
+        panel.add(Box.createHorizontalStrut(20));
         panel.add(checkoutBtn);
         return panel;
     }
 
-    // --- Métodos de Lógica e Eventos ---
 
     private void onItemSelected(ListSelectionEvent e) {
         if (!e.getValueIsAdjusting()) {
             var selected = itemsList.getSelectedValue();
             addBtn.setEnabled(selected != null);
+            updateAddButtonStyle();
             if (selected != null) {
                 qtySpinner.setValue(1);
             }
+        }
+    }
+
+    private void updateAddButtonStyle() {
+        if (addBtn.isEnabled()) {
+            addBtn.setBackground(COLOR_BUTTON);
+            addBtn.setForeground(Color.WHITE);
+        } else {
+            addBtn.setBackground(new Color(200, 200, 200));
+            addBtn.setForeground(new Color(120, 120, 120));
         }
     }
 
@@ -216,30 +375,28 @@ public class MainFrame extends JFrame {
     }
 
     private void loadItems(Category category) {
-        // Usa o seu CatalogRepository
-        List<MenuItem> all = catalogRepo.all(); //
+        List<MenuItem> all = catalogRepo.all();
         var list = all.stream()
-                .filter(m -> m.getCategory() == category) //
+                .filter(m -> m.getCategory() == category)
                 .collect(Collectors.toList());
 
         itemsModel.clear();
         for (var m : list) itemsModel.addElement(m);
 
         addBtn.setEnabled(false);
+        updateAddButtonStyle();
     }
 
     private void updateTotals() {
-        // Usa os métodos do seu 'Cart' e 'TaxCalculator'
         var sub = cart.getSubtotal();
-        var tax = cart.getTax(taxCalc); //
-        var tot = cart.getTotal(taxCalc); //
+        var tax = cart.getTax(taxCalc);
+        var tot = cart.getTotal(taxCalc);
 
-        subtotalLbl.setText("Subtotal: " + sub.toPlainString());
-        taxLbl.setText("Tax: " + tax.toPlainString());
-        totalLbl.setText("Total: " + tot.toPlainString());
+        subtotalLbl.setText("Subtotal: $" + sub.toPlainString());
+        taxLbl.setText("Tax: $" + tax.toPlainString());
+        totalLbl.setText("Total: $" + tot.toPlainString());
     }
 
-    // --- Métodos de Checkout (Week 10) ---
 
     private void handleCheckout() {
         if (cart.isEmpty()) {
@@ -248,7 +405,7 @@ public class MainFrame extends JFrame {
         }
 
         String name = JOptionPane.showInputDialog(this, "Enter customer name:", "Checkout", JOptionPane.PLAIN_MESSAGE);
-        if (name == null) return; // Cancelado
+        if (name == null) return;
         name = name.trim();
         if (name.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Name is required.", "Invalid input", JOptionPane.ERROR_MESSAGE);
@@ -261,9 +418,7 @@ public class MainFrame extends JFrame {
         boolean receiptShown = false;
 
         try {
-            // Usa o seu FileReceiptRepository
-            var file = receiptRepository.save(receiptLines); //
-            // Mostra o diálogo de recibo
+            var file = receiptRepository.save(receiptLines);
             new ReceiptDialog(this, order, file).setVisible(true);
             receiptShown = true;
         } catch (IOException ex) {
@@ -272,7 +427,6 @@ public class MainFrame extends JFrame {
         }
 
         if (receiptShown) {
-            // Limpa o carrinho após o checkout bem-sucedido
             cart.clear();
             cartTableModel.refresh();
             updateTotals();
@@ -288,18 +442,16 @@ public class MainFrame extends JFrame {
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.now());
 
-        // Cria o snapshot do Pedido (Order)
         return new Order(
                 orderId,
                 customerName,
                 Instant.now(),
-                cart.items(), //
+                cart.items(),
                 subtotal, tax, total
         );
     }
 
     private static Path defaultReceiptDir() {
-        // Salva os recibos na pasta 'kiosk-receipts' dentro do home do usuário
         return Paths.get(System.getProperty("user.home"), "kiosk-receipts");
     }
 }
