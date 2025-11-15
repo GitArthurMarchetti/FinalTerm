@@ -13,7 +13,7 @@ public class ReceiptDbSaver {
 
     public long renderAndSave(Cart cart, String customerName) throws Exception {
         var lines = service.render(cart);
-        BigDecimal sub = cart.subtotal();
+        BigDecimal sub = cart.getSubtotal();
         var last4 = lines.subList(lines.size() - 3, lines.size());
         String subtotalText = last4.get(0).replaceAll("[^0-9.]+", "");
         String taxText = last4.get(1).replaceAll("[^0-9.]+", "");

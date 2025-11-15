@@ -20,7 +20,7 @@ public class ReceiptService {
                     ci.getItem().getPrice(), ci.lineTotal());
             lines.add(line);
         }
-        BigDecimal sub = cart.subtotal();
+        BigDecimal sub = cart.getSubtotal();
         BigDecimal tax = taxCalc.tax(sub);
         BigDecimal grand = sub.add(tax);
         lines.add("----------------------------------------");

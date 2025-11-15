@@ -25,7 +25,7 @@ public class CartTest {
 
         cart.add(coffe, qty);
 
-        BigDecimal subtotal = cart.subtotal();
+        BigDecimal subtotal = cart.getSubtotal();
 
         assertEquals(coffe.getPrice().multiply(new BigDecimal(qty)), subtotal);
 
